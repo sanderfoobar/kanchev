@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kanchev - Edit</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link href="https://unpkg.com/easymde@2.18.0/dist/easymde.min.css" rel="stylesheet" crossorigin="anonymous">
+    <style>
+        pre {
+            background: #f0f0f0;
+            padding: 10px;
+        }
+
+        .container-fluid {
+            max-width: 2400px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="body" style="margin: 20px;">
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <div class="container-fluid">
+                    <span class="navbar-brand" href="/">
+                        {{^item.slug}}
+                        Add post
+                        {{/item.slug}}
+                        {{#item.slug}}
+                        Edit post
+                        {{/item.slug}}
+                    </span>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link active" aria-current="page" href="/">Back to website</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <br>
+        <div class="row">
+
+            <div class="col-md-6">
+                <form id="formProposal" onsubmit="return formSubmit(event)" role="form" method="POST">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="title">Title</label>
+                                <input id="title" type="text" name="title" class="form-control" placeholder="Title" value="{{item.title}}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="title">Author</label>
+                                <input id="author" type="text" name="author" class="form-control" placeholder="Author" value="{{item.author}}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label for="title">Date</label>
+                                <input id="date" type="text" name="date" class="form-control" placeholder="Date" value="{{date}}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <input hidden id="slug" type="text" name="slug" class="form-control" placeholder="" value="{{item.slug}}">
+
+                    <div class="form-group">
+                        <label>Content</label>
+                        <textarea id="content" class="textarea" name="markdown" placeholder="Place some text here" style="width: 100%; height: 600px; font-size: 14px; line-height: 18px; border: 1px solid #dddddd; padding: 10px;">{{item.markdown}}</textarea>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card mb-4" style="margin-top: 182px;">
+                    <div class="card-header">
+                        Preview
+                    </div>
+                    <div class="card-body">
+                        <p id="preview" class="card-text">-</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/easymde@2.18.0/dist/easymde.min.js"></script>
+<script>
+    var sel_form = document.getElementById('formProposal');
+    var sel_preview = document.getElementById('preview');
+
+    const easyMDE = new EasyMDE({
+        element: document.getElementById('content'),
+        autofocus: true,
+        forceSync: true});
+
+    function formSubmit(ev) {
+        let formData = new FormData(sel_form);
+        let data = {
+            "title": formData.get('title'),
+            "markdown": formData.get("markdown"),
+            "date": formData.get('date'),
+            "slug": formData.get('slug'),
+            "author": formData.get('author')
+        }
+
+        api_call(api_edit, data, "POST").then((resp) => {
+            resp.json().then((resp) => {
+                if (resp.hasOwnProperty('result'))
+                    if (resp.result === 'ok')
+                        window.location.href = resp.url;
+                    else
+                        alert(resp.error);
+            });
+        }).catch(err => {
+            alert(err);
+            debugger;
+        });
+
+        return false;
+    }
+
+    const previewMarkdown = () => {
+        var val = easyMDE.value();
+        if(val === "" || val === undefined) return;
+
+        api_call(api_md2html, {"markdown": val}, "POST").then(resp => {
+            resp.json().then((resp) => {
+                sel_preview.innerHTML = resp.html;
+            });
+        })
+        .catch(err => {
+            console.log(err);
+        });
+    }
+
+    easyMDE.codemirror.on("change", () => {
+        debounce(previewMarkdown, 200);
+    });
+
+    previewMarkdown();
+</script>
+
+</body>
+</html>

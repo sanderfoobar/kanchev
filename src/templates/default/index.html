@@ -1,0 +1,15 @@
+<div id="wrapper">
+  <div id="articles">
+    {{^articles}}
+    Oof. This blog is empty.
+    {{/articles}}
+
+    {{#articles}}
+    <h2>
+      <span class="date">{{date_str}}</span>
+      <a href="{{slug}}">{{title}}</a>
+      <span class="tags"><span class="tag">post</span></span>
+    </h2>
+    {{/articles}}
+  </div>
+</div>

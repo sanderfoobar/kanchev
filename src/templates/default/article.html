@@ -1,0 +1,13 @@
+<div id="wrapper" class="article">
+    <h1>{{item.title}}</h1>
+    <h4>
+        By {{item.author}}
+        <small> - {{item.date_str}}
+        {{#auth}}
+        <a href="/admin{{item.slug}}">edit</a>
+        {{/auth}}
+        </small>
+    </h4>
+    <hr>
+    {{item.data}}
+</div>
